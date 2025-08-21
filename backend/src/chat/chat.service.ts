@@ -15,9 +15,11 @@ export class ChatService {
     return this.chatMessageRepository.save(message);
   }
 
-  async getAllMessages(): Promise<ChatMessage[]> {
+  async getLatestMessages(limit: number = 50): Promise<ChatMessage[]> {
     return this.chatMessageRepository.find({
-      order: { createdAt: 'ASC' },
+      order: { createdAt: 'DESC' },
+      take: limit,
+      select: ['id', 'userId', 'userName', 'text', 'createdAt'],
     });
   }
 }
