@@ -4,8 +4,8 @@ const client = new Client({
   host: 'localhost',
   port: 5432,
   user: 'candidato',
-  password: 'av4li4cao',
-  database: 'avaliacao',
+  password: 'avaliacao1234',
+  database: 'talkdb',
 });
 
 async function test() {
