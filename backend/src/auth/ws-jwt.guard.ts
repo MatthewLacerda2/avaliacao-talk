@@ -6,16 +6,15 @@ import { Socket } from 'socket.io';
 interface WsContext {
   switchToWs(): { getClient(): Socket };
 }
-
-interface JwtPayload {
-  sub: string;
-  username: string;
-}
-
 interface SocketWithUser extends Socket {
   data: {
     user: { userId: string; username: string };
   };
+}
+
+interface JwtPayload {
+  sub: string;
+  username: string;
 }
 
 @Injectable()
@@ -32,7 +31,7 @@ export class WsJwtGuard implements CanActivate {
     }
 
     try {
-      const payload = this.jwtService.verify(token) as JwtPayload;
+      const payload = this.jwtService.verify<JwtPayload>(token);
       client.data.user = { userId: payload.sub, username: payload.username };
       return true;
     } catch {
