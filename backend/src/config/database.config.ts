@@ -8,6 +8,8 @@ export const getDatabaseConfig = (): TypeOrmModuleOptions => ({
   password: process.env.DB_PASSWORD || 'password',
   database: process.env.DB_NAME || 'chat_app',
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-  synchronize: process.env.NODE_ENV !== 'production', // Auto-sync in development
+  migrations: [__dirname + '/../migrations/*{.ts,.js}'],
+  migrationsRun: false, // Don't auto-run migrations
+  synchronize: false, // Disable auto-sync for production safety
   logging: process.env.NODE_ENV !== 'production',
 });
