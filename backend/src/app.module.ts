@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { getDatabaseConfig } from './config/database.config';
 import { UsersModule } from './users/users.module';
 import { ChatModule } from './chat/chat.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ChatModule } from './chat/chat.module';
     }),
     UsersModule,
     ChatModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
