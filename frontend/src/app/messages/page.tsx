@@ -1,16 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import MessageBubble from '../../components/message_bubble';
-
-interface Message {
-  id: number;
-  userId: number;
-  userName: string;
-  text: string;
-  createdAt: string;
-}
+import { chatService, Message } from '../../services/chatService';
 
 export default function MessagesPage() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -18,10 +11,9 @@ export default function MessagesPage() {
   const [messageText, setMessageText] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const router = useRouter();
-  const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    const loadMessages = async () => {
+    const initializeChat = async () => {
       try {
         const token = localStorage.getItem('access_token');
         if (!token) {
@@ -29,72 +21,31 @@ export default function MessagesPage() {
           return;
         }
 
-        const response = await fetch('http://localhost:3000/chat/messages', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
+        const initialMessages = await chatService.loadMessages(token);
+        setMessages(initialMessages);
+
+        const connected = await chatService.connect(token, (newMessage) => {
+          setMessages(prev => [...prev, newMessage]);
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to load messages');
-        }
-
-        const data = await response.json();
-        setMessages(data);
+        setIsConnected(connected);
       } catch (error) {
-        console.error('Error loading messages:', error);
+        console.error('Error initializing chat:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadMessages();
+    initializeChat();
   }, [router]);
 
-  useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (!token) return;
-
-    // Connect to WebSocket
-    const ws = new WebSocket(`ws://localhost:3000?token=${token}`);
-    wsRef.current = ws;
-
-    ws.onopen = () => {
-      setIsConnected(true);
-      console.log('WebSocket connected');
-    };
-
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.event === 'newMessage') {
-        setMessages(prev => [...prev, data.data]);
-      }
-    };
-
-    ws.onclose = () => {
-      setIsConnected(false);
-      console.log('WebSocket disconnected');
-    };
-
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-
-    return () => {
-      ws.close();
-    };
-  }, []);
-
   const sendMessage = () => {
-    if (!messageText.trim() || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+    if (!messageText.trim()) return;
 
-    wsRef.current.send(JSON.stringify({
-      event: 'sendMessage',
-      data: { text: messageText }
-    }));
-
-    setMessageText('');
+    const sent = chatService.sendMessage(messageText);
+    if (sent) {
+      setMessageText('');
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -107,9 +58,7 @@ export default function MessagesPage() {
   const handleExit = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('user');
-    if (wsRef.current) {
-      wsRef.current.close();
-    }
+    chatService.disconnect();
     router.push('/');
   };
 
@@ -123,7 +72,6 @@ export default function MessagesPage() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
-      {/* Header */}
       <div className="bg-green-600 text-white px-4 py-3 shadow-md flex justify-between items-center">
         <h1 className="text-lg font-semibold">Chat</h1>
         <div className="flex items-center space-x-3">
@@ -139,7 +87,6 @@ export default function MessagesPage() {
         </div>
       </div>
 
-      {/* Messages Container */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
           <MessageBubble
@@ -158,7 +105,7 @@ export default function MessagesPage() {
             type="text"
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyPress}
             placeholder="Type a message..."
             className="flex-1 px-3 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500"
             disabled={!isConnected}

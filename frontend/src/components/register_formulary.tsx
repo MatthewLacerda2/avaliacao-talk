@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Button from './button';
 import { apiService, RegisterData } from '../services/api';
+import { useRouter } from 'next/navigation';
 
 interface RegisterFormProps {
   onSwitchToLogin: () => void;
@@ -15,7 +16,8 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-
+  const router = useRouter();
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
@@ -27,20 +29,17 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
     setError('');
 
     try {
-      // First register the user
       const registerData: RegisterData = { username, email, password };
       await apiService.register(registerData);
       
-      // Then automatically login
       const loginData = { username, password };
       const response = await apiService.login(loginData);
       
-      // Save token to localStorage
       localStorage.setItem('access_token', response.access_token);
       localStorage.setItem('user', JSON.stringify(response.user));
       
       console.log('Registration and login successful:', response);
-      // TODO: Redirect to chat or dashboard
+      router.push('/messages');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {

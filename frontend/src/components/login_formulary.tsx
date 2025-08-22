@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Button from './button';
 import { apiService, LoginData } from '../services/api';
+import { useRouter } from 'next/navigation';
 
 interface LoginFormProps {
   onSwitchToRegister: () => void;
@@ -13,6 +14,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,12 +25,13 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
       const data: LoginData = { username, password };
       const response = await apiService.login(data);
       
-      // Save token to localStorage
       localStorage.setItem('access_token', response.access_token);
       localStorage.setItem('user', JSON.stringify(response.user));
       
       console.log('Login successful:', response);
-      // TODO: Redirect to chat or dashboard
+
+      router.push('/messages');
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
