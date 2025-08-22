@@ -6,34 +6,62 @@ import MessageBubble from '../../components/message_bubble';
 
 interface Message {
   id: number;
-  username: string;
+  userId: number;
+  userName: string;
   text: string;
-  created_at: string;
+  createdAt: string;
 }
 
 export default function MessagesPage() {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    // Load messages from the JSON file
     const loadMessages = async () => {
       try {
-        const response = await fetch('/messages.json');
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+          router.push('/');
+          return;
+        }
+
+        const response = await fetch('http://localhost:3000/chat/messages', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to load messages');
+        }
+
         const data = await response.json();
         setMessages(data);
       } catch (error) {
         console.error('Error loading messages:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     loadMessages();
-  }, []);
+  }, [router]);
 
   const handleExit = () => {
-    //TODO: delete jwt token
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user');
     router.push('/');
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-lg">Loading messages...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
@@ -54,9 +82,9 @@ export default function MessagesPage() {
           <MessageBubble
             key={message.id}
             id={message.id}
-            username={message.username}
+            username={message.userName}
             text={message.text}
-            created_at={message.created_at}
+            created_at={message.createdAt}
           />
         ))}
       </div>
