@@ -11,7 +11,7 @@ cd backend && npm start
 cd frontend && npm run
 ```
 
-Now you can go to localhost:3000, register and login and chat with whoever else is online on your local network
+Now you can go to localhost:3001, register and login and chat with whoever else is online on your local network
 
 ## UX
 
