@@ -9,9 +9,16 @@ export interface Message {
   createdAt: string;
 }
 
+export interface UserEvent {
+  userId: string;
+  username: string;
+  timestamp: string;
+}
+
 export class ChatService {
   private ws: WebSocket | null = null;
   private onMessageCallback: ((message: Message) => void) | null = null;
+  private onUserEventCallback: ((event: { type: 'join' | 'leave'; data: UserEvent }) => void) | null = null;
 
   async loadMessages(token: string): Promise<Message[]> {
     const response = await fetch(`${API_BASE_URL}/chat/messages`, {
@@ -28,12 +35,22 @@ export class ChatService {
     return response.json();
   }
 
-  connect(token: string, onMessage: (message: Message) => void): Promise<boolean> {
+  connect(token: string, onMessage: (message: Message) => void, onUserEvent?: (event: { type: 'join' | 'leave'; data: UserEvent }) => void): Promise<boolean> {
     return new Promise((resolve) => {
       this.onMessageCallback = onMessage;
+      this.onUserEventCallback = onUserEvent || null;
+      
+      // Create WebSocket connection with token in query params (simpler approach)
       this.ws = new WebSocket(`${WS_BASE_URL}?token=${token}`);
 
       this.ws.onopen = () => {
+        // Send userJoined event when connection is established
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+          this.ws.send(JSON.stringify({
+            event: 'userJoined',
+            data: {}
+          }));
+        }
         resolve(true);
       };
 
@@ -41,6 +58,10 @@ export class ChatService {
         const data = JSON.parse(event.data);
         if (data.event === 'newMessage' && this.onMessageCallback) {
           this.onMessageCallback(data.data);
+        } else if (data.event === 'userJoined' && this.onUserEventCallback) {
+          this.onUserEventCallback({ type: 'join', data: data.data });
+        } else if (data.event === 'userLeft' && this.onUserEventCallback) {
+          this.onUserEventCallback({ type: 'leave', data: data.data });
         }
       };
 

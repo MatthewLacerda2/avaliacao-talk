@@ -1,11 +1,10 @@
+import { Message } from '../services/chatService';
+
 interface MessageBubbleProps {
-  id: number;
-  username: string;
-  text: string;
-  created_at: string;
+  message: Message;
 }
 
-export default function MessageBubble({ id, username, text, created_at }: MessageBubbleProps) {
+export function MessageBubble({ message }: MessageBubbleProps) {
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString('en-US', { 
@@ -18,11 +17,11 @@ export default function MessageBubble({ id, username, text, created_at }: Messag
   return (
     <div className="flex flex-col mb-4">
       <div className="flex items-center mb-1">
-        <span className="font-semibold text-gray-800 text-sm">{username}</span>
-        <span className="text-gray-500 text-xs ml-2">{formatTime(created_at)}</span>
+        <span className="font-semibold text-gray-800 text-sm">{message.userName}</span>
+        <span className="text-gray-500 text-xs ml-2">{formatTime(message.createdAt)}</span>
       </div>
       <div className="bg-white rounded-lg px-4 py-2 shadow-sm border border-gray-200 max-w-xs lg:max-w-md">
-        <p className="text-gray-800 text-sm">{text}</p>
+        <p className="text-gray-800 text-sm">{message.text}</p>
       </div>
     </div>
   );
