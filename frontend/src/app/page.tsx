@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import LoginForm from './components/login_formulary';
-import RegisterForm from './components/register_formulary';
+import LoginForm from '../components/login_formulary';
+import RegisterForm from '../components/register_formulary';
 
 export default function Home() {
   const [isLogin, setIsLogin] = useState(true);
