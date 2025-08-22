@@ -1,0 +1,14 @@
+[
+    {
+        "id": 1,
+        "username": "John Doe",
+        "text": "This is an example message",
+        "created_at": "2025-08-21T00:00:00Z"
+    },
+    {
+        "id": 2,
+        "username": "Jason Borne",
+        "text": "And this is an example response",
+        "created_at": "2025-08-21T00:00:01Z"
+    }
+]
