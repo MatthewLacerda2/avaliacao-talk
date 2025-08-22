@@ -2,13 +2,20 @@
 
 ## How to run
 
-docker-compose up -d
-npm run migration:generate -- src/migrations/InitialMigration
-
-Run these commands from two separate terminals:
+To up the db and generate the initial migration:
 ```
-cd backend && npm start
-cd frontend && npm run
+docker-compose up -d
+cd backend
+npm install
+npm run migration:generate -- src/migrations/InitialMigration
+```
+To run the api:
+````
+npm start
+```
+On another terminal, install the frontend packages and then run it:
+```
+cd frontend && npm install && npm run
 ```
 
 Now you can go to localhost:3001, register and login and chat with whoever else is online on your local network
