@@ -12,7 +12,7 @@ interface SocketWithUser extends Socket {
 
 @WebSocketGateway({
   cors: {
-    origin: '*', //TODO: Configure this properly for production
+    origin: '*',
   },
 })
 export class ChatGateway {

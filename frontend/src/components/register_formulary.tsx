@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Button from './button';
+import { apiService, RegisterData } from '../services/api';
 
 interface RegisterFormProps {
   onSwitchToLogin: () => void;
@@ -12,19 +13,49 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      console.log('Passwords do not match');
+      setError('Passwords do not match');
       return;
     }
-    console.log('Register attempt:', { email, username, password, confirmPassword });
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      // First register the user
+      const registerData: RegisterData = { username, email, password };
+      await apiService.register(registerData);
+      
+      // Then automatically login
+      const loginData = { username, password };
+      const response = await apiService.login(loginData);
+      
+      // Save token to localStorage
+      localStorage.setItem('access_token', response.access_token);
+      localStorage.setItem('user', JSON.stringify(response.user));
+      
+      console.log('Registration and login successful:', response);
+      // TODO: Redirect to chat or dashboard
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Registration failed');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="w-full max-w-md mx-auto">
       <h2 className="text-2xl font-bold text-center mb-6">Register</h2>
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          {error}
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
@@ -37,6 +68,7 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
             onChange={(e) => setEmail(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
+            disabled={isLoading}
           />
         </div>
 
@@ -51,6 +83,7 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
             onChange={(e) => setUsername(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
+            disabled={isLoading}
           />
         </div>
         
@@ -65,6 +98,7 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
             onChange={(e) => setPassword(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
+            disabled={isLoading}
           />
         </div>
 
@@ -79,11 +113,12 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
             onChange={(e) => setConfirmPassword(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
+            disabled={isLoading}
           />
         </div>
 
-        <Button type="submit">
-          Enter
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Creating account...' : 'Enter'}
         </Button>
       </form>
       
@@ -92,6 +127,7 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
           type="button"
           onClick={onSwitchToLogin}
           className="text-sm text-blue-600 hover:text-blue-800 underline"
+          disabled={isLoading}
         >
           Back to login
         </button>
