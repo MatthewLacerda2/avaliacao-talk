@@ -1,12 +1,13 @@
 import { Client } from 'pg';
 
 const client = new Client({
-  host: 'localhost',
+  host: '127.0.0.1',
   port: 5432,
   user: 'candidato',
-  password: 'avaliacao1234',
-  database: 'talkdb',
+  password: 'av4li4cao',
+  database: 'avaliacao',
 });
+
 
 async function test() {
   try {
