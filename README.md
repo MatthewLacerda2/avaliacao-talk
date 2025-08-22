@@ -2,17 +2,15 @@
 
 ## How to run
 
-To up the db and generate the initial migration:
+Up the db, install the backend packages to generate the initial migration and then start the backend:
 ```
 docker-compose up -d
 cd backend
 npm install
 npm run migration:generate -- src/migrations/InitialMigration
-```
-To run the api:
-````
 npm start
 ```
+
 On another terminal, install the frontend packages and then run it:
 ```
 cd frontend && npm install && npm run
